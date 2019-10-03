@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JdCat.Basketball.Common\JdCat.Basketball.Common.csproj" />
+    <ProjectReference Include="..\JdCat.Basketball.Model\JdCat.Basketball.Model.csproj" />
+  </ItemGroup>
+
+</Project>
