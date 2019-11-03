@@ -18,7 +18,8 @@ namespace JdCat.Basketball.Common
         /// <summary>
         /// 创建小程序二维码api
         /// </summary>
-        private const string CREATE_QRCODE = "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={0}";
+        private const string CREATE_QRCODE = "https://api.weixin.qq.com/wxa/getwxacode?access_token={0}";
+        //private const string CREATE_QRCODE = "https://api.weixin.qq.com/cgi-bin/wxaapp/createwxaqrcode?access_token={0}";
 
         static WeixinHelper()
         {
@@ -61,7 +62,9 @@ namespace JdCat.Basketball.Common
         /// <returns></returns>
         public static async Task<ApiResult<byte[]>> CreateQRCodeAsync(string token, string scene, string path, int width = 430)
         {
-            return await HttpHelper.RequestFileAsync(string.Format(CREATE_QRCODE, token), new { path, width, scene });
+            //return await HttpHelper.RequestFileAsync(string.Format(CREATE_QRCODE, token), new { path, width, scene });
+            return await HttpHelper.RequestFileAsync(string.Format(CREATE_QRCODE, token), new { path = path + scene, width });
+            //return await HttpHelper.RequestFileAsync(string.Format(CREATE_QRCODE, token), new { path = path + scene, width });
         }
 
     }

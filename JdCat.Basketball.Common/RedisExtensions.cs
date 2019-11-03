@@ -194,6 +194,23 @@ namespace JdCat.Basketball.Common
             return await database.ListRightPushAsync(key, list, flags);
         }
 
+        /// <summary>
+        /// 获取列表对象
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="database"></param>
+        /// <param name="key"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        public static async Task<List<T>> ListRangeAsync<T>(this IDatabase database, RedisKey key, long start = 0, long end = -1, CommandFlags flags = CommandFlags.None)
+        {
+            var list = await database.ListRangeAsync(key, start, end, flags);
+            if (list.Length == 0) return new List<T>();
+            return list.Select(a => a.ToObject<T>()).ToList();
+        }
+
 
 
     }

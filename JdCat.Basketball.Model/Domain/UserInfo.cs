@@ -6,6 +6,9 @@ using System.Text;
 
 namespace JdCat.Basketball.Model.Domain
 {
+    /// <summary>
+    /// 用户信息
+    /// </summary>
     [Table("UserInfo")]
     public class UserInfo : BaseEntity
     {

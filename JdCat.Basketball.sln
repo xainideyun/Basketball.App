@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.705
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdCat.Basketball.App", "JdCat.Basketball.App\JdCat.Basketball.App.csproj", "{E315D0DC-AFFC-49EF-8949-7AFBB8C6D59F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JdCat.Basketball.App", "JdCat.Basketball.App\JdCat.Basketball.App.csproj", "{E315D0DC-AFFC-49EF-8949-7AFBB8C6D59F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdCat.Basketball.Model", "JdCat.Basketball.Model\JdCat.Basketball.Model.csproj", "{CAFC2D57-82D0-4FE5-94EC-D7074402EDAB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JdCat.Basketball.Model", "JdCat.Basketball.Model\JdCat.Basketball.Model.csproj", "{CAFC2D57-82D0-4FE5-94EC-D7074402EDAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdCat.Basketball.IService", "JdCat.Basketball.IService\JdCat.Basketball.IService.csproj", "{A868014C-8D58-4976-AF8D-72949FD9D9AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JdCat.Basketball.IService", "JdCat.Basketball.IService\JdCat.Basketball.IService.csproj", "{A868014C-8D58-4976-AF8D-72949FD9D9AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdCat.Basketball.MySqlService", "JdCat.Basketball.MySqlService\JdCat.Basketball.MySqlService.csproj", "{9AA97B71-8C19-47D7-87F1-C0A14EB7EC48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JdCat.Basketball.MySqlService", "JdCat.Basketball.MySqlService\JdCat.Basketball.MySqlService.csproj", "{9AA97B71-8C19-47D7-87F1-C0A14EB7EC48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdCat.Basketball.RedisService", "JdCat.Basketball.RedisService\JdCat.Basketball.RedisService.csproj", "{3CB0720F-81C6-43D6-A565-96B5E3BC38FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JdCat.Basketball.RedisService", "JdCat.Basketball.RedisService\JdCat.Basketball.RedisService.csproj", "{3CB0720F-81C6-43D6-A565-96B5E3BC38FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdCat.Basketball.Common", "JdCat.Basketball.Common\JdCat.Basketball.Common.csproj", "{2C6E03AB-6390-4862-966D-1833853F3F7A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JdCat.Basketball.Common", "JdCat.Basketball.Common\JdCat.Basketball.Common.csproj", "{2C6E03AB-6390-4862-966D-1833853F3F7A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

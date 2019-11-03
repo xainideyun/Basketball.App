@@ -40,6 +40,11 @@ namespace JdCat.Basketball.MySqlService
             throw new NotImplementedException("未实现mysql获取小程序二维码接口");
         }
 
+        public Task<string> GetNextMatchCodeAsync()
+        {
+            throw new NotImplementedException("未实现mysql获取下一个比赛编码");
+        }
+
 
 
         public string Test()

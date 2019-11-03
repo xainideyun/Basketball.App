@@ -21,6 +21,11 @@ namespace JdCat.Basketball.Model
         public DbSet<Log> Logs { get; set; }
         public DbSet<ActivityEnroll> ActivityEnrolls { get; set; }
         public DbSet<ActivityParticipant> ActivityParticipants { get; set; }
+        public DbSet<Match> Matchs { get; set; }
+        public DbSet<Team> Teams { get; set; }
+        public DbSet<Player> Players { get; set; }
+        public DbSet<Section> Sections { get; set; }
+        public DbSet<MatchLog> MatchLog { get; set; }
 
         /// <summary>
         /// 添加FluentAPI配置

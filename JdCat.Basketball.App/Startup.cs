@@ -7,7 +7,6 @@ using JdCat.Basketball.App.Middles;
 using JdCat.Basketball.Common;
 using JdCat.Basketball.IService;
 using JdCat.Basketball.Model;
-using JdCat.Basketball.MySqlService;
 using JdCat.Basketball.RedisService;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -38,6 +37,10 @@ namespace JdCat.Basketball.App
             setting.Bind(AppSetting.Setting);
             setting.Bind(WeixinHelper.Weixin);
 
+            NLog.LogManager.LoadConfiguration("NLog.config");
+            NLog.LogManager.Configuration.Variables["connectionString"] = Configuration.GetConnectionString("sqlConn");
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             services.AddCors(options =>
             {
                 options.AddPolicy(MyAllowSpecificOrigins,
@@ -64,29 +67,33 @@ namespace JdCat.Basketball.App
             services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(Configuration["connectionStrings:redisConn"]));
 
             // 配置依赖
-            services.AddScoped<IUtilService, UtilRedisService>(a => new UtilRedisService(a.GetService<IConnectionMultiplexer>(), new UtilMySqlService(a.GetService<BasketballDbContext>())));
-            services.AddScoped<IUserInfoService, UserInfoRedisService>(a => new UserInfoRedisService(a.GetService<IConnectionMultiplexer>(), new UserInfoMySqlService(a.GetService<BasketballDbContext>())));
-            services.AddScoped<IActivityService, ActivityRedisService>(a => new ActivityRedisService(a.GetService<IConnectionMultiplexer>(), new ActivityMySqlService(a.GetService<BasketballDbContext>())));
+            //services.AddScoped<IUtilService, UtilRedisService>(a => new UtilRedisService(a.GetService<IConnectionMultiplexer>(), new UtilMySqlService(a.GetService<BasketballDbContext>())));
+            //services.AddScoped<IUserInfoService, UserInfoRedisService>(a => new UserInfoRedisService(a.GetService<IConnectionMultiplexer>(), new UserInfoMySqlService(a.GetService<BasketballDbContext>())));
+            //services.AddScoped<IActivityService, ActivityRedisService>(a => new ActivityRedisService(a.GetService<IConnectionMultiplexer>(), new ActivityMySqlService(a.GetService<BasketballDbContext>())));
+            //services.AddScoped<IMatchService, MatchRedisService>(a => new MatchRedisService(a.GetService<IConnectionMultiplexer>(), new MatchMySqlService(a.GetService<BasketballDbContext>())));
+
+            services.AddScoped<IUtilService, UtilRedisService>(a => new UtilRedisService(a.GetService<IConnectionMultiplexer>(), a.GetService<BasketballDbContext>()));
+            services.AddScoped<IUserInfoService, UserInfoRedisService>(a => new UserInfoRedisService(a.GetService<IConnectionMultiplexer>(), a.GetService<BasketballDbContext>()));
+            services.AddScoped<IActivityService, ActivityRedisService>(a => new ActivityRedisService(a.GetService<IConnectionMultiplexer>(), a.GetService<BasketballDbContext>()));
+            services.AddScoped<IMatchService, MatchRedisService>(a => new MatchRedisService(a.GetService<IConnectionMultiplexer>(), a.GetService<BasketballDbContext>()));
 
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            NLog.LogManager.LoadConfiguration("NLog.config");
-            NLog.LogManager.Configuration.Variables["connectionString"] = Configuration.GetConnectionString("sqlConn");
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            app.UseStaticFiles();
-
-            app.UseErrorHandling();                 // 异常处理
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseStaticFiles();
+
+            app.UseErrorHandling();                 // 异常处理
 
             app.UseCors(MyAllowSpecificOrigins);    // 跨域处理
 
             app.UseMvc();
+
         }
     }
 }

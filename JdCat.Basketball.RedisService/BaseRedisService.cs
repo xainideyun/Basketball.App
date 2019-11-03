@@ -8,6 +8,7 @@ using JdCat.Basketball.IService;
 using JdCat.Basketball.Model;
 using JdCat.Basketball.Common;
 using NLog;
+using Microsoft.EntityFrameworkCore;
 
 namespace JdCat.Basketball.RedisService
 {
@@ -16,8 +17,7 @@ namespace JdCat.Basketball.RedisService
             2. 其他无关数据库表的键：Other:[Key] -> [Value]
     */
 
-    public class BaseRedisService<TSql> : IBaseService
-        where TSql : IBaseService
+    public class BaseRedisService : IBaseService
     {
         /// <summary>
         /// Redis连接器
@@ -26,11 +26,11 @@ namespace JdCat.Basketball.RedisService
         /// <summary>
         /// SQL服务
         /// </summary>
-        public TSql Service { get; }
-        public BaseRedisService(IConnectionMultiplexer cache, TSql service)
+        public BasketballDbContext Context { get; }
+        public BaseRedisService(IConnectionMultiplexer cache, BasketballDbContext context)
         {
             Cache = cache;
-            Service = service;
+            Context = context;
         }
         /// <summary>
         /// Redis数据库
@@ -80,15 +80,18 @@ namespace JdCat.Basketball.RedisService
 
         public async Task<int> AddAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
-            var ret = await Service.AddAsync(entity);
+            entity.CreateTime = DateTime.Now;
+            await Context.AddAsync(entity);
+            var count = await Context.SaveChangesAsync();
             await SetObjectAsync(entity);
-            return ret;
+            return count;
         }
         public async Task<int> AddAsync<TEntity>(IEnumerable<TEntity> entitys) where TEntity : BaseEntity
         {
-            var ret = await Service.AddAsync(entitys);
+            await Context.AddRangeAsync(entitys);
+            var count = await Context.SaveChangesAsync();
             await SetObjectAsync(entitys);
-            return ret;
+            return count;
         }
         public async Task<TEntity> GetAsync<TEntity>(int id) where TEntity : BaseEntity
         {
@@ -96,46 +99,85 @@ namespace JdCat.Basketball.RedisService
             var obj = await Database.ObjectGetAsync<TEntity>(key);
             if (obj == null)
             {
-                obj = await Service.GetAsync<TEntity>(id);
+                obj = await Context.FindAsync<TEntity>(id);
                 if (obj == null) return null;
-                await Database.ObjectSetAsync(key, obj);
+                await SetObjectAsync(obj);
             }
             return obj;
         }
         public async Task<int> RemoveAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
-            var ret = await Service.RemoveAsync(entity);
-            var key = KeyForCode<TEntity>(entity.ID.ToString());
+            Context.Remove(entity);
+            var count = await Context.SaveChangesAsync();
+            var key = KeyForCode<TEntity>(entity.ID);
             await Database.KeyDeleteAsync(key);
-            return ret;
+            return count;
         }
         public async Task<int> RemoveAsync<TEntity>(IEnumerable<TEntity> entitys) where TEntity : BaseEntity
         {
-            var ret = await Service.RemoveAsync(entitys);
+            Context.RemoveRange(entitys);
+            var count = await Context.SaveChangesAsync();
             await Database.KeyDeleteAsync(entitys.Select(a => (RedisKey)KeyForCode<TEntity>(a.ID.ToString())).ToArray());
-            return ret;
+            return count;
         }
-        public async Task<TEntity> UpdateAsync<TEntity>(TEntity entity, IEnumerable<string> fieldNames = null) where TEntity : BaseEntity
+        public async Task<TEntity> UpdateAsync<TEntity>(TEntity entity, params string[] fieldNames) where TEntity : BaseEntity
         {
-            var obj = await Service.UpdateAsync(entity, fieldNames);
-            await Database.ObjectSetAsync(KeyForCode<TEntity>(entity.ID.ToString()), entity);
-            return obj;
-        }
-        public async Task<List<TEntity>> GetListAsync<TEntity>(PagingQuery paging = null, Func<TEntity, bool> where = null, Func<TEntity, object> orderAsc = null, Func<TEntity, object> orderDesc = null) where TEntity : BaseEntity, new()
-        {
-            var ids = await GetEntityIdsAsync(paging, where, orderAsc, orderDesc);
-            var keys = ids.Select(a => (RedisKey)KeyForCode<TEntity>(a.ToString())).ToArray();
-            var entitys = await Database.ObjectGetAsync<TEntity>(keys);
-            if (keys.Length != entitys.Count)        // 如果记录数目不相等，则重新写入Redis
+            if (fieldNames == null || fieldNames.Count() == 0)
             {
-                entitys = await Service.GetListAsync(paging, where, orderAsc, orderDesc);
-                await Database.ObjectSetAsync(entitys.Select(entity => new KeyValuePair<RedisKey, TEntity>(KeyForCode<TEntity>(entity.ID.ToString()), entity)).ToArray());
+                Context.Entry(entity).State = EntityState.Modified;
             }
-            return entitys;
+            else
+            {
+                Context.Attach(entity);
+                foreach (var field in fieldNames)
+                {
+                    Context.Entry(entity).Property(field).IsModified = true;
+                }
+            }
+            await Context.SaveChangesAsync();
+            await SetObjectAsync(entity);
+            return entity;
         }
-        public async Task<List<int>> GetEntityIdsAsync<TEntity>(PagingQuery paging = null, Func<TEntity, bool> where = null, Func<TEntity, object> orderAsc = null, Func<TEntity, object> orderDesc = null) where TEntity : BaseEntity, new()
+        public async Task UpdateAsync<TEntity>(IEnumerable<TEntity> entities, params string[] fieldNames) where TEntity : BaseEntity
         {
-            return await Service.GetEntityIdsAsync(paging, where, orderAsc, orderDesc);
+            foreach (var entity in entities)
+            {
+                if (fieldNames == null || fieldNames.Count() == 0)
+                {
+                    Context.Entry(entity).State = EntityState.Modified;
+                }
+                else
+                {
+                    Context.Attach(entity);
+                    foreach (var field in fieldNames)
+                    {
+                        Context.Entry(entity).Property(field).IsModified = true;
+                    }
+                }
+            }
+            await Context.SaveChangesAsync();
+            foreach (var item in entities)
+            {
+                await SetObjectAsync(item);
+            }
+        }
+        public Task<List<TEntity>> GetListAsync<TEntity>(PagingQuery paging = null, Func<TEntity, bool> where = null, Func<TEntity, object> orderAsc = null, Func<TEntity, object> orderDesc = null) where TEntity : BaseEntity, new()
+        {
+            throw new Exception("未实现接口[GetListAsync]。");
+            //var ids = await GetEntityIdsAsync(paging, where, orderAsc, orderDesc);
+            //var keys = ids.Select(a => (RedisKey)KeyForCode<TEntity>(a.ToString())).ToArray();
+            //var entitys = await Database.ObjectGetAsync<TEntity>(keys);
+            //if (keys.Length != entitys.Count)        // 如果记录数目不相等，则重新写入Redis
+            //{
+            //    entitys = await Context.GetListAsync(paging, where, orderAsc, orderDesc);
+            //    await Database.ObjectSetAsync(entitys.Select(entity => new KeyValuePair<RedisKey, TEntity>(KeyForCode<TEntity>(entity.ID.ToString()), entity)).ToArray());
+            //}
+            //return entitys;
+        }
+        public Task<List<int>> GetEntityIdsAsync<TEntity>(PagingQuery paging = null, Func<TEntity, bool> where = null, Func<TEntity, object> orderAsc = null, Func<TEntity, object> orderDesc = null) where TEntity : BaseEntity, new()
+        {
+            throw new Exception("未实现接口[GetEntityIdsAsync]。");
+            //return await Context.GetEntityIdsAsync(paging, where, orderAsc, orderDesc);
         }
 
 
@@ -173,10 +215,32 @@ namespace JdCat.Basketball.RedisService
         {
             var start = paging?.Skip ?? 0;
             long end = -1;
-            if (paging != null) end = start + paging.PageSize;
+            if (paging != null) end = start + paging.PageSize - 1;
             var ids = await Database.ListRangeAsync(key, start, end);
             if (ids.Length == 0) return null;
             var entities = await Database.ObjectGetAsync<TEntity>(ids.Select(a => (RedisKey)KeyForCode<TEntity>(a)).ToArray());
+            return entities;
+        }
+
+        /// <summary>
+        /// 获取集合中id对应的对象列表
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="paging"></param>
+        /// <returns></returns>
+        public async Task<List<TEntity>> SortedSetRangeObjectAsync<TEntity>(RedisKey key, double start = double.MinValue, double stop = double.MaxValue, long skip = 0, long take = -1, Order order = Order.Descending) where TEntity : BaseEntity
+        {
+            var ids = await Database.SortedSetRangeByScoreAsync(key, start: start, stop: stop, skip: skip, take: take, order: order);
+            if (ids.Length == 0) return null;
+            var entities = await Database.ObjectGetAsync<TEntity>(ids.Select(a => (RedisKey)KeyForCode<TEntity>(a)).ToArray());
+            if(entities.Count != ids.Length)
+            {
+                // 如果数量不相等，表示存在已经删除的对象，在集合中删除对应的值
+                var exists = entities.Select(a => a.ID).ToList();
+                var removes = ids.Where(id => !exists.Contains((int)id)).ToArray();
+                await Database.SortedSetRemoveAsync(key, removes);
+            }
             return entities;
         }
         /// <summary>
@@ -187,7 +251,7 @@ namespace JdCat.Basketball.RedisService
         /// <returns></returns>
         public async Task<bool> SetObjectAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
-            return await Database.ObjectSetAsync(KeyForCode<TEntity>(entity.ID.ToString()), entity);
+            return await Database.ObjectSetAsync(KeyForCode<TEntity>(entity.ID), entity);
         }
         /// <summary>
         /// 批量设置实体对象
@@ -200,29 +264,112 @@ namespace JdCat.Basketball.RedisService
             var keys = entities.Select(entity => new KeyValuePair<RedisKey, TEntity>(KeyForCode<TEntity>(entity.ID.ToString()), entity)).ToArray();
             return await Database.ObjectSetAsync(keys);
         }
+
+        #region MyRegion
+
         /// <summary>
         /// 获取实体对象与其他实体对象的关联列表（多对象）
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <typeparam name="TParent"></typeparam>
         /// <param name="ids"></param>
-        /// <returns></returns>
-        public async Task<List<TEntity>> GetRelativeEntitysAsync<TEntity, TParent>(params string[] ids) where TEntity : BaseEntity, new()
-        {
-            if (ids == null || ids.Length == 0) return new List<TEntity>();
-            var listKeys = ids.Select(a => KeyForCode<TEntity>($"{typeof(TParent).Name}:{a}")).ToList();
-            var vals = new List<string>();
-            foreach (var key in listKeys)
-            {
-                vals.AddRange((await Database.ListRangeAsync(key)).Select(a => a.ToString()));
-            }
-            vals = vals.Distinct().ToList();
-            if (vals.Count == 0) return new List<TEntity>();
-            var keys = vals.Select(a => (RedisKey)KeyForCode<TEntity>(a)).ToArray();
-            var results = await Database.StringGetAsync(keys);
-            var entitys = results.Select(a => a.ToObject<TEntity>()).ToList();
-            return entitys;
-        }
+        ///// <returns></returns>
+        //public async Task<List<TEntity>> GetRelativeEntitysAsync<TEntity, TParent>(params string[] ids) 
+        //    where TEntity : BaseEntity, new()
+        //    where TParent : BaseEntity, new()
+        //{
+        //    if (ids == null || ids.Length == 0) return new List<TEntity>();
+        //    var listKeys = ids.Select(a => KeyForCode<TEntity>($"{typeof(TParent).Name}:{a}")).ToList();
+        //    var vals = new List<string>();
+        //    foreach (var key in listKeys)
+        //    {
+        //        vals.AddRange((await Database.ListRangeAsync(key)).Select(a => a.ToString()));
+        //    }
+        //    vals = vals.Distinct().ToList();
+        //    if (vals.Count == 0) return new List<TEntity>();
+        //    var keys = vals.Select(a => (RedisKey)KeyForCode<TEntity>(a)).ToArray();
+        //    var results = await Database.StringGetAsync(keys);
+        //    var entitys = results.Select(a => a.ToObject<TEntity>()).ToList();
+        //    return entitys;
+        //}
+        ///// <summary>
+        ///// 获取实体对象与其他实体对象的关联列表
+        ///// </summary>
+        ///// <typeparam name="TEntity"></typeparam>
+        ///// <typeparam name="TParent"></typeparam>
+        ///// <param name="id">父级对象id</param>
+        ///// <param name="paging">分页对象</param>
+        ///// <returns></returns>
+        //public async Task<List<TEntity>> GetRelativeEntitysAsync<TEntity, TParent>(int id, PagingQuery paging = null) 
+        //    where TEntity : BaseEntity, new()
+        //    where TParent : BaseEntity, new()
+        //{
+        //    var key = KeyForCode<TEntity>($"{typeof(TParent).Name}:{id}");
+        //    return await ListRangeObjectAsync<TEntity>(key, paging);
+        //}
+        ///// <summary>
+        ///// 设置实体对象与其他实体对象的关联列表
+        ///// </summary>
+        ///// <typeparam name="TEntity"></typeparam>
+        ///// <typeparam name="TParent"></typeparam>
+        ///// <param name="id"></param>
+        ///// <param name="entities"></param>
+        ///// <returns></returns>
+        //public async Task SetRelativeEntitysAsync<TEntity, TParent>(int id, params TEntity[] entities) 
+        //    where TEntity : BaseEntity, new()
+        //    where TParent : BaseEntity, new()
+        //{
+        //    var key = KeyForCode<TEntity>($"{typeof(TParent).Name}:{id}");
+        //    await Database.ListRightPushAsync(key, entities.Select(a => (RedisValue)a.ID).ToArray());
+        //}
+        ///// <summary>
+        ///// 设置实体对象与其他实体对象的关联列表
+        ///// </summary>
+        ///// <typeparam name="TEntity"></typeparam>
+        ///// <typeparam name="TParent"></typeparam>
+        ///// <param name="id"></param>
+        ///// <param name="entities"></param>
+        ///// <returns></returns>
+        //public async Task SetRelativeEntitysAsync<TEntity, TParent>(int id, params int[] ids)
+        //    where TEntity : BaseEntity, new()
+        //    where TParent : BaseEntity, new()
+        //{
+        //    var key = KeyForCode<TEntity>($"{typeof(TParent).Name}:{id}");
+        //    await Database.ListRightPushAsync(key, ids.Select(a => (RedisValue)a).ToArray());
+        //}
+        ///// <summary>
+        ///// 设置实体对象与其他实体对象的关联列表（倒序）
+        ///// </summary>
+        ///// <typeparam name="TEntity"></typeparam>
+        ///// <typeparam name="TParent"></typeparam>
+        ///// <param name="id"></param>
+        ///// <param name="entities"></param>
+        ///// <returns></returns>
+        //public async Task SetRelativeEntitysReverseAsync<TEntity, TParent>(int id, params TEntity[] entities)
+        //    where TEntity : BaseEntity, new()
+        //    where TParent : BaseEntity, new()
+        //{
+        //    var key = KeyForCode<TEntity>($"{typeof(TParent).Name}:{id}");
+        //    await Database.ListLeftPushAsync(key, entities.Select(a => (RedisValue)a.ID).ToArray());
+        //}
+        ///// <summary>
+        ///// 设置实体对象与其他实体对象的关联列表（倒序）
+        ///// </summary>
+        ///// <typeparam name="TEntity"></typeparam>
+        ///// <typeparam name="TParent"></typeparam>
+        ///// <param name="id"></param>
+        ///// <param name="entities"></param>
+        ///// <returns></returns>
+        //public async Task SetRelativeEntitysReverseAsync<TEntity, TParent>(int id, params int[] ids)
+        //    where TEntity : BaseEntity, new()
+        //    where TParent : BaseEntity, new()
+        //{
+        //    var key = KeyForCode<TEntity>($"{typeof(TParent).Name}:{id}");
+        //    await Database.ListLeftPushAsync(key, ids.Select(a => (RedisValue)a).ToArray());
+        //}
+
+        #endregion
+
         /// <summary>
         /// 获取实体对象与其他实体对象的关联列表
         /// </summary>
@@ -231,10 +378,12 @@ namespace JdCat.Basketball.RedisService
         /// <param name="id">父级对象id</param>
         /// <param name="paging">分页对象</param>
         /// <returns></returns>
-        public async Task<List<TEntity>> GetRelativeEntitysAsync<TEntity, TParent>(int id, PagingQuery paging = null) where TEntity : BaseEntity, new()
+        public async Task<List<TEntity>> GetRelativeEntitysAsync<TEntity, TParent>(int id, string desc = null, PagingQuery paging = null, Order order = Order.Descending)
+            where TEntity : BaseEntity, new()
+            where TParent : BaseEntity, new()
         {
-            var key = KeyForCode<TEntity>($"{typeof(TParent).Name}:{id}");
-            return await ListRangeObjectAsync<TEntity>(key, paging);
+            var key = KeyForCode<TParent>($"{desc ?? typeof(TEntity).Name}:{id}");
+            return await SortedSetRangeObjectAsync<TEntity>(key, paging?.MinScore ?? double.MinValue, paging?.MaxScore ?? double.MaxValue, paging?.Skip ?? 0, paging?.PageSize ?? -1, order);
         }
         /// <summary>
         /// 设置实体对象与其他实体对象的关联列表
@@ -244,10 +393,59 @@ namespace JdCat.Basketball.RedisService
         /// <param name="id"></param>
         /// <param name="entities"></param>
         /// <returns></returns>
-        public async Task SetRelativeEntitysAsync<TEntity, TParent>(int id, params TEntity[] entities) where TEntity : BaseEntity, new()
+        public async Task SetRelativeEntitysAsync<TEntity, TParent>(int id, params TEntity[] entities)
+            where TEntity : BaseEntity, new()
+            where TParent : BaseEntity, new()
         {
-            var key = KeyForCode<TEntity>($"{typeof(TParent).Name}:{id}");
-            await Database.ListRightPushAsync(key, entities.Select(a => (RedisValue)a.ID).ToArray());
+            var key = KeyForCode<TParent>($"{typeof(TEntity).Name}:{id}");
+            await Database.SortedSetAddAsync(key, entities.Select(a => new SortedSetEntry(a.ID, a.ID)).ToArray());
         }
+        /// <summary>
+        /// 设置实体对象与其他实体对象的关联列表
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TParent"></typeparam>
+        /// <param name="id"></param>
+        /// <param name="entities"></param>
+        /// <returns></returns>
+        public async Task SetRelativeEntitysAsync<TEntity, TParent>(int id, string desc = null, params TEntity[] entities)
+            where TEntity : BaseEntity, new()
+            where TParent : BaseEntity, new()
+        {
+            var key = KeyForCode<TParent>($"{desc ?? typeof(TEntity).Name}:{id}");
+            await Database.SortedSetAddAsync(key, entities.Select(a => new SortedSetEntry(a.ID, a.ID)).ToArray());
+        }
+        /// <summary>
+        /// 设置实体对象与其他实体对象的关联列表
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TParent"></typeparam>
+        /// <param name="id"></param>
+        /// <param name="entities"></param>
+        /// <returns></returns>
+        public async Task SetRelativeEntitysAsync<TEntity, TParent>(int id, params int[] ids)
+            where TEntity : BaseEntity, new()
+            where TParent : BaseEntity, new()
+        {
+            var key = KeyForCode<TParent>($"{typeof(TEntity).Name}:{id}");
+            await Database.SortedSetAddAsync(key, ids.Select(a => new SortedSetEntry(a, a)).ToArray());
+        }
+        /// <summary>
+        /// 设置实体对象与其他实体对象的关联列表
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <typeparam name="TParent"></typeparam>
+        /// <param name="id"></param>
+        /// <param name="entities"></param>
+        /// <returns></returns>
+        public async Task SetRelativeEntitysAsync<TEntity, TParent>(int id, string desc = null, params int[] ids)
+            where TEntity : BaseEntity, new()
+            where TParent : BaseEntity, new()
+        {
+            var key = KeyForCode<TParent>($"{desc ?? typeof(TEntity).Name}:{id}");
+            await Database.SortedSetAddAsync(key, ids.Select(a => new SortedSetEntry(a, a)).ToArray());
+        }
+
+
     }
 }

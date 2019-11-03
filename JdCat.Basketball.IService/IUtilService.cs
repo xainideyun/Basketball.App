@@ -38,7 +38,11 @@ namespace JdCat.Basketball.IService
         /// <param name="width">小程序宽度</param>
         /// <returns></returns>
         Task<string> GetWxQrCodeAsync(string appId, string secret, string scene, string path, int width = 430);
-
+        /// <summary>
+        /// 获取下一个比赛编码
+        /// </summary>
+        /// <returns></returns>
+        Task<string> GetNextMatchCodeAsync();
 
 
         /// <summary>

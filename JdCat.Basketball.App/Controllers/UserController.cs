@@ -48,7 +48,15 @@ namespace JdCat.Basketball.App.Controllers
         [HttpPost]
         public async Task<ActionResult<ApiResult<UserInfo>>> GrantUserInfo([FromBody]UserInfo user, [FromServices]IUserInfoService service)
         {
-            await service.UpdateAsync(user, new[] { nameof(user.NickName), nameof(user.FaceUrl), nameof(user.Country), nameof(user.Province), nameof(user.City), nameof(user.Gender), nameof(user.Phone) });
+            var userinfo = await service.GetAsync<UserInfo>(user.ID);
+            userinfo.NickName = user.NickName;
+            userinfo.FaceUrl = user.FaceUrl;
+            userinfo.Country = user.Country;
+            userinfo.Province = user.Province;
+            userinfo.City = user.City;
+            userinfo.Gender = user.Gender;
+            userinfo.Phone = user.Phone;
+            await service.UpdateAsync(userinfo, new[] { nameof(user.NickName), nameof(user.FaceUrl), nameof(user.Country), nameof(user.Province), nameof(user.City), nameof(user.Gender), nameof(user.Phone) });
             return new ApiResult<UserInfo> { Message = "request:ok", Result = user };
         }
 

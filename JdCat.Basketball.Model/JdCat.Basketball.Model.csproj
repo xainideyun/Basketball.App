@@ -16,8 +16,4 @@
     <ProjectReference Include="..\JdCat.Basketball.Common\JdCat.Basketball.Common.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Mappings\" />
-  </ItemGroup>
-
 </Project>

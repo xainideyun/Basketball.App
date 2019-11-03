@@ -21,7 +21,7 @@ namespace JdCat.Basketball.IService
         /// <param name="participant"></param>
         /// <param name="activity"></param>
         /// <returns></returns>
-        Task<ActivityParticipant> JoinActivityAsync(ActivityParticipant participant, ActivityEnroll activity = null);
+        Task<ActivityParticipant> JoinActivityAsync(ActivityParticipant participant);
         /// <summary>
         /// 获取用户创建的活动
         /// </summary>
@@ -53,6 +53,6 @@ namespace JdCat.Basketball.IService
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<ActivityEnroll> DeleteActivityAsync(int id);
+        Task<bool> DeleteActivityAsync(int id);
     }
 }

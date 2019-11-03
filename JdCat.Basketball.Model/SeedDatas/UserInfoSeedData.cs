@@ -18,7 +18,7 @@ namespace JdCat.Basketball.Model.SeedDatas
         {
             var now = new DateTime(2019, 9, 28);
 
-            ModelBuilder.Entity<UserInfo>().HasData(new UserInfo { ID = 1, FaceUrl = "https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTJfMTu7XeEEA2ZmMOxuowJRf4BXGOXXqZtj6ZTCLeU4cTTsFicMUk8BPW2icVIZwQpfowBotjibAHMFg/132", CreateTime = now, NickName = "华天晓", City = "武汉", Country = "中国", Gender = Gender.Man, Phone = "17354300837", Province = "湖北" });
+            ModelBuilder.Entity<UserInfo>().HasData(new UserInfo { ID = 1, CreateTime = now, NickName = "对手1", Name = "对手1", PlayNumber = "1", City = "武汉", Country = "中国", Gender = Gender.Man, Phone = "13900000000", Province = "湖北" });
 
         }
     }

@@ -21,7 +21,6 @@
     <ProjectReference Include="..\JdCat.Basketball.Common\JdCat.Basketball.Common.csproj" />
     <ProjectReference Include="..\JdCat.Basketball.IService\JdCat.Basketball.IService.csproj" />
     <ProjectReference Include="..\JdCat.Basketball.Model\JdCat.Basketball.Model.csproj" />
-    <ProjectReference Include="..\JdCat.Basketball.MySqlService\JdCat.Basketball.MySqlService.csproj" />
     <ProjectReference Include="..\JdCat.Basketball.RedisService\JdCat.Basketball.RedisService.csproj" />
   </ItemGroup>
 
@@ -30,5 +29,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1Development_1json__JSONSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>

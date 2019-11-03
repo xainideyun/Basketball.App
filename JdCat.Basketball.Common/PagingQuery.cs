@@ -18,6 +18,14 @@ namespace JdCat.Basketball.Common
         /// </summary>
         public int PageSize { get; set; }
         /// <summary>
+        /// 最低分数（SortedSet结构过滤用）
+        /// </summary>
+        public int MinScore { get; set; }
+        /// <summary>
+        /// 最高分数（SortedSet结构过滤用）
+        /// </summary>
+        public int MaxScore { get; set; }
+        /// <summary>
         /// 总记录数
         /// </summary>
         public int RecordCount { get; set; }

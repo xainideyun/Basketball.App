@@ -36,7 +36,7 @@ namespace JdCat.Basketball.MySqlService
         }
         public async Task<TEntity> GetAsync<TEntity>(int id) where TEntity : BaseEntity
         {
-            return await Context.Set<TEntity>().FirstOrDefaultAsync(a => a.ID == id);
+            return await Context.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync(a => a.ID == id);
         }
         public async Task<int> RemoveAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
@@ -62,7 +62,7 @@ namespace JdCat.Basketball.MySqlService
                     Context.Entry(entity).Property(field).IsModified = true;
                 }
             }
-            Context.Update(entity);
+            //Context.Update(entity);
             await Context.SaveChangesAsync();
             return entity;
         }
@@ -78,7 +78,7 @@ namespace JdCat.Basketball.MySqlService
             {
                 paging.RecordCount = await query.CountAsync();
             }
-            return await query.Skip(paging.Skip).Take(paging.PageSize).ToListAsync();
+            return await query.AsNoTracking().Skip(paging.Skip).Take(paging.PageSize).ToListAsync();
         }
         public async Task<List<int>> GetEntityIdsAsync<TEntity>(PagingQuery paging = null, Func<TEntity, bool> where = null, Func<TEntity, object> orderAsc = null, Func<TEntity, object> orderDesc = null) where TEntity : BaseEntity, new()
         {

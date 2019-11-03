@@ -11,12 +11,13 @@ using NLog;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using JdCat.Basketball.Model;
 
 namespace JdCat.Basketball.RedisService
 {
-    public class UtilRedisService : BaseRedisService<IUtilService>, IUtilService
+    public class UtilRedisService : BaseRedisService, IUtilService
     {
-        public UtilRedisService(IConnectionMultiplexer cache, IUtilService service) : base(cache, service)
+        public UtilRedisService(IConnectionMultiplexer cache, BasketballDbContext context) : base(cache, context)
         {
         }
 
@@ -100,6 +101,15 @@ namespace JdCat.Basketball.RedisService
             return url;
         }
 
+        public async Task<string> GetNextMatchCodeAsync()
+        {
+            var key = KeyForOther($"Match:Code");
+            var num = await Database.StringIncrementAsync(key);
+            var code = $"{DateTime.Now:yyyyMMdd}{num}{UtilHelper.RandNum()}";
+            return code;
+        }
+
+
 
 
         public string Test()
@@ -108,8 +118,7 @@ namespace JdCat.Basketball.RedisService
             Logger.Error(new Exception("登录失败"), "redis系统出错了");
 
             Thread.Sleep(1000);
-
-            Service.Test();
+            
 
             return "ok";
         }

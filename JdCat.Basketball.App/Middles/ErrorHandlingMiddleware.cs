@@ -26,12 +26,13 @@ namespace JdCat.Basketball.App.Middles
             }
             catch (Exception ex)
             {
-                var statusCode = context.Response.StatusCode;
-                if (ex is ArgumentException)
-                {
-                    statusCode = 200;
-                }
-                await HandleExceptionAsync(context, statusCode, ex.Message, ex.StackTrace);
+                //var statusCode = context.Response.StatusCode;
+                //if (ex is ArgumentException)
+                //{
+                //    statusCode = 200;
+                //}
+                context.Response.StatusCode = 500;
+                await HandleExceptionAsync(context, 500, ex.Message, ex.StackTrace);
             }
             finally
             {
@@ -49,7 +50,7 @@ namespace JdCat.Basketball.App.Middles
                 {
                     msg = "请求错误";
                 }
-                else if (statusCode != 200)
+                else if (statusCode >= 400)
                 {
                     msg = "未知错误";
                 }
@@ -70,11 +71,4 @@ namespace JdCat.Basketball.App.Middles
         }
     }
 
-    public static class ErrorHandlingExtensions
-    {
-        public static IApplicationBuilder UseErrorHandling(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<ErrorHandlingMiddleware>();
-        }
-    }
 }

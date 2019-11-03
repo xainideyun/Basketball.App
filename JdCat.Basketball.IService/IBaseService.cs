@@ -33,7 +33,15 @@ namespace JdCat.Basketball.IService
         /// 修改实体对象
         /// </summary>
         /// <param name="entity"></param>
-        Task<TEntity> UpdateAsync<TEntity>(TEntity entity, IEnumerable<string> fieldNames = null) where TEntity : BaseEntity;
+        Task<TEntity> UpdateAsync<TEntity>(TEntity entity, params string[] fieldNames) where TEntity : BaseEntity;
+        /// <summary>
+        /// 批量修改
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="entities"></param>
+        /// <param name="fieldNames"></param>
+        /// <returns></returns>
+        Task UpdateAsync<TEntity>(IEnumerable<TEntity> entities, params string[] fieldNames) where TEntity : BaseEntity;
         /// <summary>
         /// 根据id获取实体对象
         /// </summary>

@@ -6,18 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using JdCat.Basketball.Model;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace JdCat.Basketball.RedisService
 {
-    public class UserInfoRedisService : BaseRedisService<IUserInfoService>, IUserInfoService
+    public class UserInfoRedisService : BaseRedisService, IUserInfoService
     {
-        public UserInfoRedisService(IConnectionMultiplexer cache, IUserInfoService service) : base(cache, service)
+        public UserInfoRedisService(IConnectionMultiplexer cache, BasketballDbContext context) : base(cache, context)
         {
         }
 
         public async Task<UserInfo> GetUserByOpenIdAsync(string openid)
         {
-            return await GetByIdentityAsync(openid, "OpenId", id => Service.GetUserByOpenIdAsync(id));
+            return await GetByIdentityAsync(openid, "OpenId", async id => await Context.UserInfos.FirstOrDefaultAsync(a => a.OpenId == openid));
         }
         
 

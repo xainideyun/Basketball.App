@@ -40,17 +40,27 @@ namespace JdCat.Basketball.MySqlService
 
         public async Task<List<ActivityEnroll>> GetUserActivitiesAsync(int userId, PagingQuery paging)
         {
-            return await Context.ActivityEnrolls
+            var query = Context.ActivityEnrolls
                 .Where(a => a.UserInfoId == userId)
-                .ToListAsync();
+                .OrderByDescending(a => a.CreateTime);
+            if (paging != null)
+            {
+                return await query.Skip(paging.Skip).Take(paging.PageSize).ToListAsync();
+            }
+            return await query.ToListAsync();
         }
 
         public async Task<List<ActivityEnroll>> GetJoinActivitiesAsync(int userId, PagingQuery paging)
         {
-            var ids = await Context.ActivityParticipants
+            var query = Context.ActivityParticipants
                 .Where(a => a.UserInfoId == userId)
-                .Select(a => a.ActivityEnrollId)
-                .ToListAsync();
+                .OrderByDescending(a => a.CreateTime)
+                .Select(a => a.ActivityEnrollId);
+            if (paging != null)
+            {
+                query = query.Skip(paging.Skip).Take(paging.PageSize);
+            }
+            var ids = await query.ToListAsync();
             return await Context.ActivityEnrolls
                 .Where(a => ids.Contains(a.ID))
                 .ToListAsync();
@@ -68,10 +78,12 @@ namespace JdCat.Basketball.MySqlService
             return await Context.ActivityParticipants.Where(a => a.ActivityEnrollId == id).ToListAsync();
         }
 
-        public async Task<ActivityEnroll> DeleteActivityAsync(int id)
+        public async Task<bool> DeleteActivityAsync(int id)
         {
-            var entity = new ActivityEnroll { ID = id, Status = ActivityStatus.Delete };
-            return await UpdateAsync(entity, new[] { nameof(entity.Status) });
+            //var entity = new ActivityEnroll { ID = id, Status = ActivityStatus.Delete };
+            //return await UpdateAsync(entity, new[] { nameof(entity.Status) });
+            Context.Remove(new ActivityEnroll { ID = id });
+            return await Context.SaveChangesAsync() > 0;
         }
 
     }

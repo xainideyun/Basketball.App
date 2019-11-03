@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace JdCat.Basketball.Common
 {
@@ -70,6 +71,22 @@ namespace JdCat.Basketball.Common
         }
 
         /// <summary>
+        /// 遍历列表，执行函数
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<T>> ForEachAsync<T>(this IEnumerable<T> list, Func<T, Task> predicate)
+        {
+            foreach (var item in list)
+            {
+                await predicate(item);
+            }
+            return list;
+        }
+
+        /// <summary>
         /// 将字符串转化为MD5码
         /// </summary>
         /// <param name="input">字符串</param>
@@ -107,6 +124,17 @@ namespace JdCat.Basketball.Common
         {
             if (encoding == null) encoding = Encoding.UTF8;
             return encoding.GetString(buffer);
+        }
+
+        /// <summary>
+        /// 将时间转化为时间戳（秒数）
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static long ToTimestamp(this DateTime dateTime)
+        {
+            var ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            return Convert.ToInt64(ts.TotalSeconds) * 1000;
         }
 
     }

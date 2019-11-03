@@ -20,10 +20,10 @@ namespace JdCat.Basketball.App.Controllers
         /// 生成小程序二维码
         /// </summary>
         /// <returns></returns>
-        [HttpGet("qrcode")]
-        public async Task<ActionResult<ApiResult<string>>> QrCode([FromQuery]string scene, [FromQuery]string page, [FromServices]IUtilService service)
+        [HttpPost("qrcode")]
+        public async Task<ActionResult<ApiResult<string>>> QrCode([FromBody]Tuple<string, string> tuple, [FromServices]IUtilService service)
         {
-            var url = await service.GetWxQrCodeAsync(WeixinHelper.Weixin.AppId, WeixinHelper.Weixin.Secret, scene, page);
+            var url = await service.GetWxQrCodeAsync(WeixinHelper.Weixin.AppId, WeixinHelper.Weixin.Secret, tuple.Item1, tuple.Item2);
             return new ApiResult<string> { Result = url };
         }
 
