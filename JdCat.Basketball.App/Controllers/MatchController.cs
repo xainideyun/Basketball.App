@@ -134,32 +134,6 @@ namespace JdCat.Basketball.App.Controllers
         }
 
         /// <summary>
-        /// 暂停比赛
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [HttpPut("pause/{id}")]
-        public async Task<ActionResult<ApiResult<bool>>> Pause(int id, [FromQuery]int? teamId)
-        {
-            var result = new ApiResult<bool>
-            {
-                Result = await Service.PauseAsync(id, teamId)
-            };
-            return result;
-        }
-
-        /// <summary>
-        /// 比赛继续
-        /// </summary>
-        /// <param name="id">单节实体id</param>
-        /// <returns></returns>
-        [HttpPut("continue/{id}")]
-        public async Task<ActionResult<ApiResult<long>>> Continue(int id)
-        {
-            return new ApiResult<long> { Result = await Service.ContinueAsync(id) };
-        }
-
-        /// <summary>
         /// 下一节
         /// </summary>
         /// <param name="id">上一节id</param>
@@ -237,6 +211,39 @@ namespace JdCat.Basketball.App.Controllers
         {
             return await Service.GetLogsAsync(id, paging) ?? new List<MatchLog>();
         }
+
+
+
+
+        #region 未用到
+
+        /// <summary>
+        /// 暂停比赛
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPut("pause/{id}")]
+        public async Task<ActionResult<ApiResult<bool>>> Pause(int id, [FromQuery]int? teamId)
+        {
+            var result = new ApiResult<bool>
+            {
+                Result = await Service.PauseAsync(id, teamId)
+            };
+            return result;
+        }
+
+        /// <summary>
+        /// 比赛继续
+        /// </summary>
+        /// <param name="id">单节实体id</param>
+        /// <returns></returns>
+        [HttpPut("continue/{id}")]
+        public async Task<ActionResult<ApiResult<long>>> Continue(int id)
+        {
+            return new ApiResult<long> { Result = await Service.ContinueAsync(id) };
+        }
+
+        #endregion
 
     }
 }

@@ -3,14 +3,16 @@ using System;
 using JdCat.Basketball.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace JdCat.Basketball.Model.Migrations
 {
     [DbContext(typeof(BasketballDbContext))]
-    partial class BasketballDbContextModelSnapshot : ModelSnapshot
+    [Migration("20191105142318_Modify_NotMapping")]
+    partial class Modify_NotMapping
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -211,8 +213,6 @@ namespace JdCat.Basketball.Model.Migrations
                     b.Property<int>("Fault");
 
                     b.Property<int>("Foul");
-
-                    b.Property<int>("GetLost");
 
                     b.Property<int>("MatchId");
 

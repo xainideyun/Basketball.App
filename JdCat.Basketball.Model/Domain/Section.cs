@@ -56,6 +56,7 @@ namespace JdCat.Basketball.Model.Domain
         /// <summary>
         /// 比赛实体
         /// </summary>
+        [NotMapped]
         public virtual Match Match { get; set; }
     }
 }

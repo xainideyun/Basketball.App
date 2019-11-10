@@ -82,6 +82,7 @@ namespace JdCat.Basketball.Model.Domain
         /// <summary>
         /// 比赛记录人实体
         /// </summary>
+        [NotMapped]
         public virtual UserInfo UserInfo { get; set; }
 
         /// <summary>
@@ -91,11 +92,13 @@ namespace JdCat.Basketball.Model.Domain
         /// <summary>
         /// 所属比赛实体
         /// </summary>
+        [NotMapped]
         public virtual Match Match { get; set; }
 
         /// <summary>
         /// 队伍球员
         /// </summary>
+        [NotMapped]
         public virtual ICollection<Player> Players { get; set; }
     }
 }

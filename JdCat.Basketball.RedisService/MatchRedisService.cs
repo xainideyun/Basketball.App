@@ -13,6 +13,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using JdCat.Basketball.Model.Enums;
 using JdCat.Basketball.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace JdCat.Basketball.RedisService
 {
@@ -49,12 +50,12 @@ namespace JdCat.Basketball.RedisService
             var match = await GetAsync<Match>(matchId);
             var teams = await GetRelativeEntitysAsync<Team, Match>(matchId, order: Order.Ascending);
             var sections = await GetRelativeEntitysAsync<Section, Match>(matchId, order: Order.Ascending);
-            await teams.ForEachAsync(async team => 
+            await teams.ForEachAsync(async team =>
             {
                 team.Players = await GetRelativeEntitysAsync<Player, Team>(team.ID);
             });
             match.Teams = teams;
-            match.Sections = sections;
+            match.Sections = sections ?? new List<Section>();
             return match;
         }
 
@@ -80,27 +81,17 @@ namespace JdCat.Basketball.RedisService
             //match.HostName = hostTeam.Name;
             //match.VisitorName = visitorTeam.Name;
             await AddAsync(match);
+            match.Teams.ForEach(team => team.MatchId = match.ID);
+            await AddAsync<Team>(match.Teams);
             if (match.Mode == MatchMode.Self)
             {
-                var vistorTeam = match.Teams.LastOrDefault();
+                var vistorTeam = match.Teams.FirstOrDefault(a => a.Name == "客队");
                 var player = new Player { Name = "球员1", PlayNumber = "1", Status = PlayerStatus.Up, TeamId = vistorTeam.ID, UserInfoId = 1, MatchId = match.ID };
                 await AddAsync(player);
-                player.Team = null;
-                player.Match = null;
-                await SetObjectAsync(player);
-                await SetRelativeEntitysAsync<Player, Team>(vistorTeam.ID, player);
+                await SetRelativeEntitysAsync<Player, Team>(vistorTeam.ID, player);         // 保存球员与球队关系
             }
-            match.Teams.ForEach(a =>
-            {
-                a.Match = null;
-                a.Players = null;
-            });
-            await SetObjectAsync<Team>(match.Teams);
             await SetRelativeEntitysAsync<Team, Match>(match.ID, match.Teams.ToArray());                // 保存比赛与队伍的关系
             await SetRelativeEntitysAsync<Match, UserInfo>(match.UserInfoId, "CreateMatch", match);     // 保存用户创建的比赛
-
-            match.Teams = null;
-            await SetObjectAsync(match);
 
             return match;
         }
@@ -181,21 +172,8 @@ namespace JdCat.Basketball.RedisService
             match.ContinueTime = timestamp;
             await UpdateAsync(match, "Status", "ContinueTime");
 
-            if (match.Teams == null)
-            {
-                match.Teams = await GetMatchTeamsAsync(match.ID);
-            }
-            var players = new List<Player>();
-            var p1 = await GetTeamPlayersAsync(match.Teams.FirstOrDefault().ID);
-            p1?.Where(a => a.Status == PlayerStatus.Up).ForEach(a => players.Add(a));
-            var p2 = await GetTeamPlayersAsync(match.Teams.LastOrDefault().ID);
-            p2?.Where(a => a.Status == PlayerStatus.Up).ForEach(a => players.Add(a));
+            await UpPlayersContinueAsync(match.ID);
 
-            players.ForEach(a => a.ContinueTime = timestamp);
-            if (players.Count > 0)
-            {
-                await UpdateAsync<Player>(players, "ContinueTime");
-            }
             return timestamp;
         }
 
@@ -215,11 +193,12 @@ namespace JdCat.Basketball.RedisService
             var teams = match.Teams;
             var section = match.Sections.FirstOrDefault(a => a.Status != MatchStatus.End);
             var players = teams.SelectMany(a => a.Players).ToList();
-            match.Teams = null;
-            match.Sections = null;
-            teams.ForEach(a => a.Players = null);
 
             // 保存比赛信息
+            if (match.Status == MatchStatus.End)
+            {
+                match.EndTime = DateTime.Now;
+            }
             Context.Attach(match);
             foreach (var field in _matchFields)
             {
@@ -252,9 +231,9 @@ namespace JdCat.Basketball.RedisService
 
             await Context.SaveChangesAsync();
             await SetObjectAsync(match);
-            teams.ForEach(async team => await SetObjectAsync(team));
+            await teams.ForEachAsync(async team => await SetObjectAsync(team));
             await SetObjectAsync(section);
-            players.ForEach(async player => await SetObjectAsync(player));
+            await players.ForEachAsync(async player => await SetObjectAsync(player));
         }
 
         public async Task EndSectionAsync(int sectionId)
@@ -273,14 +252,17 @@ namespace JdCat.Basketball.RedisService
         {
             var lastSection = await GetAsync<Section>(sectionId);
             var timestamp = DateTime.Now.ToTimestamp();
-            //var sectionLen = await Database.SortedSetLengthAsync(KeyForCode<Match>($"{typeof(Section).Name}:{matchId}"));
             var section = new Section { PartNumber = lastSection.PartNumber + 1, StartTime = DateTime.Now, Status = MatchStatus.Working, MatchId = lastSection.MatchId, ContinueTime = timestamp };
             await AddAsync(section);
             await SetRelativeEntitysAsync<Section, Match>(lastSection.MatchId, section);
+
             var match = await GetAsync<Match>(lastSection.MatchId);
             match.Status = MatchStatus.Working;
             match.ContinueTime = timestamp;
             await UpdateAsync(match, nameof(match.Status), nameof(match.ContinueTime));
+
+            await UpPlayersContinueAsync(match.ID);
+
             return section;
         }
 
@@ -295,6 +277,22 @@ namespace JdCat.Basketball.RedisService
         public async Task<List<Player>> GetTeamPlayersAsync(int teamId)
         {
             return await GetRelativeEntitysAsync<Player, Team>(teamId, order: Order.Ascending);
+        }
+
+
+
+        /// <summary>
+        /// 场上球员继续比赛
+        /// </summary>
+        /// <param name="matchId"></param>
+        /// <returns></returns>
+        private async Task UpPlayersContinueAsync(int matchId)
+        {
+            var timestamp = DateTime.Now.ToTimestamp();
+            var players = await Context.Players.Where(a => a.MatchId == matchId && a.Status == PlayerStatus.Up).ToListAsync();
+            players.ForEach(a => a.ContinueTime = timestamp);
+            await Context.SaveChangesAsync();
+            await SetObjectAsync<Player>(players);
         }
 
     }

@@ -95,11 +95,13 @@ namespace JdCat.Basketball.Model.Domain
         /// <summary>
         /// 比赛球队
         /// </summary>
+        [NotMapped]
         public virtual ICollection<Team> Teams { get; set; }
 
         /// <summary>
         /// 单节
         /// </summary>
+        [NotMapped]
         public virtual ICollection<Section> Sections { get; set; }
 
         /// <summary>
@@ -109,6 +111,7 @@ namespace JdCat.Basketball.Model.Domain
         /// <summary>
         /// 创建者实体
         /// </summary>
+        [NotMapped]
         public virtual UserInfo UserInfo{ get; set; }
     }
 }

@@ -127,14 +127,14 @@ namespace JdCat.Basketball.Common
         }
 
         /// <summary>
-        /// 将时间转化为时间戳（秒数）
+        /// 将时间转化为时间戳（毫秒数）
         /// </summary>
         /// <param name="dateTime"></param>
         /// <returns></returns>
         public static long ToTimestamp(this DateTime dateTime)
         {
             var ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            return Convert.ToInt64(ts.TotalSeconds) * 1000;
+            return Convert.ToInt64(ts.TotalMilliseconds);
         }
 
     }

@@ -85,6 +85,10 @@ namespace JdCat.Basketball.Model.Domain
         /// 失误
         /// </summary>
         public int Fault { get; set; }
+        /// <summary>
+        /// 正负值
+        /// </summary>
+        public int GetLost { get; set; }
 
         /// <summary>
         /// 球员状态
@@ -98,6 +102,7 @@ namespace JdCat.Basketball.Model.Domain
         /// <summary>
         /// 所属队伍实体
         /// </summary>
+        [NotMapped]
         public virtual Team Team { get; set; }
 
         /// <summary>
@@ -107,6 +112,7 @@ namespace JdCat.Basketball.Model.Domain
         /// <summary>
         /// 用户实体
         /// </summary>
+        [NotMapped]
         public virtual UserInfo UserInfo{ get; set; }
 
         /// <summary>
@@ -116,6 +122,7 @@ namespace JdCat.Basketball.Model.Domain
         /// <summary>
         /// 比赛实体
         /// </summary>
+        [NotMapped]
         public virtual Match Match { get; set; }
 
     }
