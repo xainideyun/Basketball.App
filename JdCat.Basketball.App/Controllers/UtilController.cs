@@ -14,17 +14,33 @@ namespace JdCat.Basketball.App.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UtilController : ControllerBase
+    public class UtilController : BaseController<IUtilService>
     {
+        public UtilController(IUtilService service) : base(service)
+        {
+        }
+
         /// <summary>
         /// 生成小程序二维码
         /// </summary>
         /// <returns></returns>
         [HttpPost("qrcode")]
-        public async Task<ActionResult<ApiResult<string>>> QrCode([FromBody]Tuple<string, string> tuple, [FromServices]IUtilService service)
+        public async Task<ActionResult<ApiResult<string>>> QrCode([FromBody]Tuple<string, string> tuple)
         {
-            var url = await service.GetWxQrCodeAsync(WeixinHelper.Weixin.AppId, WeixinHelper.Weixin.Secret, tuple.Item1, tuple.Item2);
+            var url = await Service.GetWxQrCodeAsync(WeixinHelper.Weixin.AppId, WeixinHelper.Weixin.Secret, tuple.Item1, tuple.Item2);
             return new ApiResult<string> { Result = url };
+        }
+
+        /// <summary>
+        /// 意见反馈
+        /// </summary>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        [HttpPost("feedback")]
+        public async Task<ActionResult<ApiResult<bool>>> Feedback([FromBody]Feedback body)
+        {
+            await Service.AddAsync(body);
+            return new ApiResult<bool> { Result = true };
         }
 
     }

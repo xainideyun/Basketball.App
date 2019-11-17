@@ -279,6 +279,15 @@ namespace JdCat.Basketball.RedisService
             return await GetRelativeEntitysAsync<Player, Team>(teamId, order: Order.Ascending);
         }
 
+        public async Task<bool> ChangeTeamRecordPeopleAsync(int teamId, int userId)
+        {
+            var team = await GetAsync<Team>(teamId);
+            team.UserInfoId = userId;
+            await UpdateAsync(team, nameof(team.UserInfoId));
+            await SetRelativeEntitysAsync<Match, UserInfo>(userId, team.MatchId);
+            return true;
+        }
+
 
 
         /// <summary>

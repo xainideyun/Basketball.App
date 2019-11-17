@@ -184,5 +184,12 @@ namespace JdCat.Basketball.IService
         /// <param name="teamId"></param>
         /// <returns></returns>
         Task<List<Player>> GetTeamPlayersAsync(int teamId);
+        /// <summary>
+        /// 更换球队统计员
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<bool> ChangeTeamRecordPeopleAsync(int teamId, int userId);
     }
 }

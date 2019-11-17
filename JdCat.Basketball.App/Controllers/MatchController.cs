@@ -212,6 +212,30 @@ namespace JdCat.Basketball.App.Controllers
             return await Service.GetLogsAsync(id, paging) ?? new List<MatchLog>();
         }
 
+        /// <summary>
+        /// 获取球员实体
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("team/{id}")]
+        public async Task<ActionResult<Team>> GetTeam(int id)
+        {
+            return await Service.GetAsync<Team>(id);
+        }
+
+        /// <summary>
+        /// 更换球队统计员
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpPut("team/change/{id}")]
+        public async Task<ActionResult<ApiResult<bool>>> ChangeRecordPeople(int id, [FromQuery]int userId)
+        {
+            await Service.ChangeTeamRecordPeopleAsync(id, userId);
+            return new ApiResult<bool> { Result = true, Message = "ok" };
+        }
+
 
 
 
