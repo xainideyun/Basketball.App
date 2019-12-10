@@ -178,9 +178,18 @@ namespace JdCat.Basketball.App.Controllers
             return new ApiResult<string> { Result = "ok" };
         }
 
+        /// <summary>
+        /// 上传比赛记录
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         [HttpPost("upload")]
         public async Task<ActionResult<ApiResult<bool>>> Upload([FromBody]MatchData data)
         {
+            if (data.Logs != null)
+            {
+                await Service.RecordMatchLogsAsync(data.Logs);
+            }
             if (data.Match != null)
             {
                 await Service.UpdateAsync(data.Match);
@@ -213,7 +222,7 @@ namespace JdCat.Basketball.App.Controllers
         }
 
         /// <summary>
-        /// 获取球员实体
+        /// 获取对球实体
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -235,7 +244,6 @@ namespace JdCat.Basketball.App.Controllers
             await Service.ChangeTeamRecordPeopleAsync(id, userId);
             return new ApiResult<bool> { Result = true, Message = "ok" };
         }
-
 
 
 

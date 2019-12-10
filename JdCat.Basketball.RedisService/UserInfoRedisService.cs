@@ -22,7 +22,12 @@ namespace JdCat.Basketball.RedisService
         {
             return await GetByIdentityAsync(openid, "OpenId", async id => await Context.UserInfos.FirstOrDefaultAsync(a => a.OpenId == openid));
         }
-        
+
+        public async Task<List<Player>> GetPlayersAsync(int userId, PagingQuery paging)
+        {
+            return await GetRelativeEntitysAsync<Player, UserInfo>(userId, paging: paging);
+        }
+
 
     }
 }

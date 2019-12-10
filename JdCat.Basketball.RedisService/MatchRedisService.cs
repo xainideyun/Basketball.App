@@ -85,8 +85,8 @@ namespace JdCat.Basketball.RedisService
             await AddAsync<Team>(match.Teams);
             if (match.Mode == MatchMode.Self)
             {
-                var vistorTeam = match.Teams.FirstOrDefault(a => a.Name == "客队");
-                var player = new Player { Name = "球员1", PlayNumber = "1", Status = PlayerStatus.Up, TeamId = vistorTeam.ID, UserInfoId = 1, MatchId = match.ID };
+                var vistorTeam = match.Teams.FirstOrDefault(a => a.Name == "系统队");
+                var player = new Player { Name = "admin", PlayNumber = "X", Status = PlayerStatus.Up, TeamId = vistorTeam.ID, UserInfoId = 1, MatchId = match.ID };
                 await AddAsync(player);
                 await SetRelativeEntitysAsync<Player, Team>(vistorTeam.ID, player);         // 保存球员与球队关系
             }
@@ -102,6 +102,7 @@ namespace JdCat.Basketball.RedisService
             await AddAsync(player);
             await SetRelativeEntitysAsync<Player, Team>(player.TeamId, player);                     // 保存球队与球员关系
             await SetRelativeEntitysAsync<Match, UserInfo>(player.UserInfoId, player.MatchId);      // 保存用户参与过的比赛
+            await SetRelativeEntitysAsync<Player, UserInfo>(player.UserInfoId, player);             // 保存用户与参赛者关系
 
             var tempKey = KeyForOther($"Temp:JoinTeamPlayers:{player.TeamId}");
             await Database.ListRightPushAsync(tempKey, player.ToJson());        // 新加入成员记录
@@ -286,6 +287,13 @@ namespace JdCat.Basketball.RedisService
             await UpdateAsync(team, nameof(team.UserInfoId));
             await SetRelativeEntitysAsync<Match, UserInfo>(userId, team.MatchId);
             return true;
+        }
+
+        public async Task RecordMatchLogsAsync(List<MatchLog> logs)
+        {
+            var matchId = logs.First().MatchId;
+            await AddAsync<MatchLog>(logs);
+            await SetRelativeEntitysAsync<MatchLog, Match>(matchId, logs.ToArray());
         }
 
 

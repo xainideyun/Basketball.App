@@ -1,4 +1,5 @@
-﻿using JdCat.Basketball.Model.Domain;
+﻿using JdCat.Basketball.Common;
+using JdCat.Basketball.Model.Domain;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,6 +15,14 @@ namespace JdCat.Basketball.IService
         /// <param name="openid"></param>
         /// <returns></returns>
         Task<UserInfo> GetUserByOpenIdAsync(string openid);
+
+        /// <summary>
+        /// 获取用户的球员数据
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="paging"></param>
+        /// <returns></returns>
+        Task<List<Player>> GetPlayersAsync(int userId, PagingQuery paging);
 
     }
 }

@@ -52,6 +52,10 @@ namespace JdCat.Basketball.Model.Domain
         /// 手机号
         /// </summary>
         public string Phone { get; set; }
+        /// <summary>
+        /// 是否添加到了我的小程序
+        /// </summary>
+        public bool HasMyselfProgram { get; set; }
 
     }
 }

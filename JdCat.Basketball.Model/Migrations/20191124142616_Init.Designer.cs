@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JdCat.Basketball.Model.Migrations
 {
     [DbContext(typeof(BasketballDbContext))]
-    [Migration("20191117162604_Add_Feedback")]
-    partial class Add_Feedback
+    [Migration("20191124142616_Init")]
+    partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -362,6 +362,8 @@ namespace JdCat.Basketball.Model.Migrations
 
                     b.Property<int>("Gender");
 
+                    b.Property<bool>("HasMyselfProgram");
+
                     b.Property<string>("Name");
 
                     b.Property<string>("NickName");
@@ -386,6 +388,7 @@ namespace JdCat.Basketball.Model.Migrations
                             Country = "中国",
                             CreateTime = new DateTime(2019, 9, 28, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Gender = 1,
+                            HasMyselfProgram = false,
                             Name = "对手1",
                             NickName = "对手1",
                             Phone = "13900000000",

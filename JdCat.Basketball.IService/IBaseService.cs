@@ -49,6 +49,13 @@ namespace JdCat.Basketball.IService
         /// <returns></returns>
         Task<TEntity> GetAsync<TEntity>(int id) where TEntity : BaseEntity;
         /// <summary>
+        /// 根据id获取实体对象
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        Task<List<TEntity>> GetAsync<TEntity>(IEnumerable<int> ids) where TEntity : BaseEntity;
+        /// <summary>
         /// 获取实体对象列表
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>

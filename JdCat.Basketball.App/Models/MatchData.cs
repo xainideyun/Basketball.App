@@ -12,5 +12,6 @@ namespace JdCat.Basketball.App.Models
         public Section Section { get; set; }
         public List<Team> Teams { get; set; }
         public List<Player> Players { get; set; }
+        public List<MatchLog> Logs { get; set; }
     }
 }

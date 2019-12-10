@@ -95,7 +95,7 @@ namespace JdCat.Basketball.RedisService
         }
         public async Task<TEntity> GetAsync<TEntity>(int id) where TEntity : BaseEntity
         {
-            var key = KeyForCode<TEntity>(id.ToString());
+            var key = KeyForCode<TEntity>(id);
             var obj = await Database.ObjectGetAsync<TEntity>(key);
             if (obj == null)
             {
@@ -104,6 +104,11 @@ namespace JdCat.Basketball.RedisService
                 await SetObjectAsync(obj);
             }
             return obj;
+        }
+        public async Task<List<TEntity>> GetAsync<TEntity>(IEnumerable<int> ids) where TEntity : BaseEntity
+        {
+            var keys = ids.Select(a => (RedisKey)KeyForCode<TEntity>(a)).ToArray();
+            return await Database.ObjectGetAsync<TEntity>(keys);
         }
         public async Task<int> RemoveAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
         {
@@ -226,8 +231,12 @@ namespace JdCat.Basketball.RedisService
         /// 获取集合中id对应的对象列表
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="paging"></param>
+        /// <param name="key">键</param>
+        /// <param name="start">最小score</param>
+        /// <param name="stop">最大score</param>
+        /// <param name="skip">跳过的记录数</param>
+        /// <param name="take">获取的记录数</param>
+        /// <param name="order">排序方式</param>
         /// <returns></returns>
         public async Task<List<TEntity>> SortedSetRangeObjectAsync<TEntity>(RedisKey key, double start = double.MinValue, double stop = double.MaxValue, long skip = 0, long take = -1, Order order = Order.Descending) where TEntity : BaseEntity
         {

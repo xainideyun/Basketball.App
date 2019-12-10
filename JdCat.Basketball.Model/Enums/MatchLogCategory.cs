@@ -66,5 +66,25 @@ namespace JdCat.Basketball.Model.Enums
         /// 更换统计员
         /// </summary>
         ChangeStatistician = 14,
+        /// <summary>
+        /// 比赛开始
+        /// </summary>
+        Start = 15,
+        /// <summary>
+        /// 比赛结束
+        /// </summary>
+        End = 16,
+        /// <summary>
+        /// 比赛暂停
+        /// </summary>
+        Pause = 17,
+        /// <summary>
+        /// 单节结束
+        /// </summary>
+        Halftime = 18,
+        /// <summary>
+        /// 比赛继续
+        /// </summary>
+        Continue = 19,
     }
 }
