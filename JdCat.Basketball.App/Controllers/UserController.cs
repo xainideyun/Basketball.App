@@ -62,7 +62,7 @@ namespace JdCat.Basketball.App.Controllers
             userinfo.Phone = user.Phone;
             await SaveFaceAsync(userinfo);      // 保存用户头像
             await service.UpdateAsync(userinfo, new[] { nameof(user.NickName), nameof(user.FaceUrl), nameof(user.Country), nameof(user.Province), nameof(user.City), nameof(user.Gender), nameof(user.Phone) });
-            return new ApiResult<UserInfo> { Message = "request:ok", Result = user };
+            return new ApiResult<UserInfo> { Message = "request:ok", Result = userinfo };
         }
 
         /// <summary>
@@ -86,14 +86,26 @@ namespace JdCat.Basketball.App.Controllers
         /// <param name="paging">分页对象</param>
         /// <returns></returns>
         [HttpGet("match/{id}")]
-        public async Task<ActionResult<List<Player>>> GetMyMatchs(int id, [FromQuery]PagingQuery paging, [FromServices]IUserInfoService service)
+        public async Task<ActionResult<object>> GetMyMatchs(int id, [FromQuery]PagingQuery paging, [FromServices]IUserInfoService service)
         {
             var players = await service.GetPlayersAsync(id, paging);
-            if (players == null) return new List<Player>();
+            if (players == null) return new List<object>();
             var ids = players.Select(a => a.MatchId).ToList();
             var matchs = await service.GetAsync<Match>(ids);
             players.ForEach(a => a.Match = matchs.FirstOrDefault(b => b.ID == a.MatchId));
-            return players;
+
+            return players.Select(a => new { Host = a.Match.HostName, Visitor = a.Match.VisitorName, a.Match.HostScore, a.Match.VisitorScore, a.Score, a.Match.StartTime, Id = a.ID }).ToList();
+        }
+
+        /// <summary>
+        /// 获取球员数据
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("player/{id}")]
+        public async Task<ActionResult<Player>> GetPlayer(int id, [FromServices]IMatchService service)
+        {
+            return await service.GetAsync<Player>(id);
         }
 
 

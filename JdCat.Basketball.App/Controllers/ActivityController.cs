@@ -92,6 +92,18 @@ namespace JdCat.Basketball.App.Controllers
         }
 
         /// <summary>
+        /// 更新参与者状态
+        /// </summary>
+        /// <param name="participant"></param>
+        /// <returns></returns>
+        [HttpPut("updateStatus")]
+        public async Task<ActionResult<ApiResult<ActivityEnroll>>> UpdateParticipantStatus([FromBody]ActivityParticipant participant)
+        {
+            var activity = await Service.UpdateParticipantStatusAsync(participant);
+            return new ApiResult<ActivityEnroll> { Result = activity }; ;
+        }
+
+        /// <summary>
         /// 更新活动信息
         /// </summary>
         /// <param name="id"></param>

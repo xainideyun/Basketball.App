@@ -62,6 +62,47 @@ namespace JdCat.Basketball.RedisService
             return participant;
         }
 
+        public async Task<ActivityEnroll> UpdateParticipantStatusAsync(ActivityParticipant participant)
+        {
+            participant.JoinTime = DateTime.Now;
+            var old = await GetAsync<ActivityParticipant>(participant.ID);
+            var activity = await GetAsync<ActivityEnroll>(participant.ActivityEnrollId);
+            if (old.Status == JoinStatus.Absent)
+            {
+                activity.AbsentQuantity--;
+            }
+            else if (old.Status == JoinStatus.Join)
+            {
+                activity.JoinQuantity--;
+            }
+            else
+            {
+                activity.PendingQuantity--;
+            }
+            if (participant.Status == JoinStatus.Absent)
+            {
+                activity.AbsentQuantity++;
+            }
+            else if (participant.Status == JoinStatus.Join)
+            {
+                activity.JoinQuantity++;
+            }
+            else
+            {
+                activity.PendingQuantity++;
+            }
+
+            old.Name = participant.Name;
+            old.Phone = participant.Phone;
+            old.Status = participant.Status;
+            old.Remark = participant.Remark;
+            await Context.SaveChangesAsync();
+            await SetObjectAsync(activity);
+            await SetObjectAsync(old);
+
+            return activity;
+        }
+
         public async Task<List<ActivityEnroll>> GetUserActivitiesAsync(int userId, PagingQuery paging)
         {
             var desc = "CreateActivity";

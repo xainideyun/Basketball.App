@@ -19,9 +19,14 @@ namespace JdCat.Basketball.IService
         /// 参与活动
         /// </summary>
         /// <param name="participant"></param>
-        /// <param name="activity"></param>
         /// <returns></returns>
         Task<ActivityParticipant> JoinActivityAsync(ActivityParticipant participant);
+        /// <summary>
+        /// 修改参与者状态
+        /// </summary>
+        /// <param name="participant"></param>
+        /// <returns></returns>
+        Task<ActivityEnroll> UpdateParticipantStatusAsync(ActivityParticipant participant);
         /// <summary>
         /// 获取用户创建的活动
         /// </summary>
