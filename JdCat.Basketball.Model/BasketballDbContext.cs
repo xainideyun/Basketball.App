@@ -26,7 +26,11 @@ namespace JdCat.Basketball.Model
         public DbSet<Player> Players { get; set; }
         public DbSet<Section> Sections { get; set; }
         public DbSet<MatchLog> MatchLog { get; set; }
-        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<AccessAuthority> AccessAuthorities { get; set; }
+        public DbSet<NLogInfo> NLogInfos { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<RoleUser> RoleUsers { get; set; }
+        public DbSet<User> Users { get; set; }
 
         /// <summary>
         /// 添加FluentAPI配置
